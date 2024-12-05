@@ -1,5 +1,3 @@
-#Crée un comtpe de service et installe Ansible
-
 # Crée l'utilisateur ansible et définir un mot de passe provisoire
 adduser --gecos "" ansible
 echo "ansible:password" | chpasswd
@@ -10,6 +8,9 @@ chage -d 0 ansible
 # Ajoute l'utilisateur ansible au groupe sudo
 usermod -aG sudo ansible
 chown -R ansible:ansible /home/ansible/
+
+# Configure sudoers pour l'utilisateur ansible
+echo "ansible ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Passe à l'utilisateur ansible pour effectuer l'installation et les autres actions
 sudo -u ansible bash << EOF
@@ -35,4 +36,4 @@ cat id_srv-ansible.pub >> authorized_keys
 
 EOF
 
-echo "Configuration terminée. L'utilisateur 'ansible' est prêt à être utilisé, son mot de passe sera à modofier à la prochaine connection"
+echo "Configuration terminée. L'utilisateur 'ansible' est prêt à être utilisé, son mot de passe sera à modifier à la prochaine connexion"
