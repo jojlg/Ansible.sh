@@ -22,23 +22,6 @@ sudo systemctl enable docker
 # Vérifie l'installation de Docker
 sudo systemctl status docker
 
-# Crée l'utilisateur docker et définir un mot de passe provisoire
-adduser --gecos "" docker
-echo "docker:password" | chpasswd
-
-# Ajoute l'utilisateur docker au groupe sudo et au groupe docker
-usermod -aG sudo docker
-usermod -aG docker docker
-chown -R docker:docker /home/docker/
-
-# Configure sudoers pour l'utilisateur docker
-echo "docker ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-
-# Passe à l'utilisateur docker pour effectuer l'installation et les autres actions
-sudo -u docker bash << EOF
-# Mets à jour la liste des paquets
-sudo apt-get update -y
-
 # Installe Python et pip
 sudo apt-get install -y python3 python3-pip
 
@@ -54,17 +37,43 @@ sudo chmod +x /usr/local/bin/docker-compose
 # Vérifier l'installation de Docker Compose
 docker-compose --version
 
-# Crée le répertoire .ssh et générer la clé SSH
-mkdir -p /home/docker/.ssh
-cd /home/docker/.ssh
+# Crée l'utilisateur ansible et définir un mot de passe provisoire
+adduser --gecos "" ansible
+echo "ansible:password" | chpasswd
 
-# Génére une clé SSH ed25519 (le nom sera 'id_srv-docker')
-ssh-keygen -t ed25519 -f id_srv-docker -N ""
+# Force l'utilisateur à changer son mot de passe à la prochaine connexion
+chage -d 0 ansible
+
+# Ajoute l'utilisateur ansible au groupe sudo
+usermod -aG sudo ansible
+chown -R ansible:ansible /home/ansible/
+
+# Configure sudoers pour l'utilisateur ansible
+echo "ansible ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Passe à l'utilisateur ansible pour effectuer l'installation et les autres actions
+sudo -u ansible bash << EOF
+# Mets à jour la liste des paquets
+sudo apt-get update -y
+
+# Installe Ansible et tree (facultatif)
+sudo apt-get install ansible -y
+sudo apt install tree -y
+
+# Vérifie la version d'Ansible installée
+ansible --version
+
+# Crée le répertoire .ssh et générer la clé SSH
+mkdir -p /home/ansible/.ssh
+cd /home/ansible/.ssh
+
+# Génére une clé SSH ed25519 (le nom sera 'id_srv-ansible')
+ssh-keygen -t ed25519 -f id_srv-ansible -N ""
 
 # Ajoute la clé publique au fichier authorized_keys
-cat id_srv-docker.pub >> authorized_keys
+cat id_srv-ansible.pub >> authorized_keys
 
 EOF
 
 echo "Installation de Docker, Python et Docker Compose terminée avec succès."
-echo "Configuration SSH pour l'utilisateur 'docker' terminée. L'utilisateur 'docker' est prêt à être utilisé, son mot de passe sera à modifier à la prochaine connexion."
+echo "Configuration SSH pour l'utilisateur 'ansible' terminée. L'utilisateur 'ansible' est prêt à être utilisé, son mot de passe sera à modifier à la prochaine connexion."
